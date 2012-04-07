@@ -1,25 +1,46 @@
 (ns leiningen.generative
   (:refer-clojure :exclude [test])
-  (:require leiningen.core)
-  (:use [leiningen.compile :only [eval-in-project]]
+  (:use [leiningen.test :only [*exit-after-tests*]]
+        [leiningen.core.eval :only [eval-in-project]]
+        [clojure.pprint :only [pprint]]
         [leiningen.classpath :only [classpath]]))
+
 
 (defn- run-generative-tests [project]
   `(do
      (let [path# ~(or (:generative-path project) "test/")]
+       (letfn [(print-line# [line-contents#]
+                 (println (apply str (take 80 (cycle line-contents#)))))
+               (report# [result#]
+                 (if-let [err# (:error result#)]
+                   (do
+                     (println)
+                     (print-line# "=")
+                     (println "FAILURE")
+                     (print-line# "=")
+                     (println ":file     " (str path#
+                                                java.io.File/separatorChar
+                                                (-> result# :form first meta :file)))
+                     (println ":spec     " (-> result# :form first meta :name))
+                     (println)
+                     (print ":form      ")
+                     (prn (:form result#))
+                     (println ":error    " err#)
+                     (println)
+                     (println ":seed     " (:seed result#))
+                     (println ":iteration" (:iteration result#))
+                     (print-line# "="))
+                   (prn result#)))]
+         (dosync (reset! gen/report-fn report#)))
        (println "Testing generative tests in" path#
                 "on" gen/*cores* "cores for"
                 gen/*msec* "msec.")
        (let [futures# (gen/test-dirs ~(:generative-path project))]
-         (doseq [f# futures#]
-           (try
-             @f#
-             (catch Throwable t#
-               (.printStackTrace t#)
-               (System/exit -1))
-             (finally
-              (when-not ~leiningen.core/*interactive?*
-                (shutdown-agents)))))))))
+         (try (doseq [f# futures#]
+                (try @f# (catch Throwable t#)))
+           (finally
+             (when ~*exit-after-tests*
+               (shutdown-agents))))))))
 
 (defn- set-generative-path-to-project [project]
   (let [generative-path (str (:root project)
@@ -41,6 +62,4 @@
     (eval-in-project
       new-project
       (run-generative-tests new-project)
-      nil
-      nil
       '(require '[clojure.test.generative :as gen]))))

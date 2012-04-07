@@ -1,4 +1,8 @@
-# lein-generative
+# lein2-generative
+
+**A fork of lein-generative to make it work with Leiningen 2.**
+
+**Also prettifies the output a bit.**
 
 A [Leiningen](https://github.com/technomancy/leiningen) plugin used to run generative tests defined using the [test.generative](https://github.com/clojure/test.generative) Clojure contrib library.
 
@@ -6,9 +10,9 @@ A [Leiningen](https://github.com/technomancy/leiningen) plugin used to run gener
 
 *This is currently only proven to work in Leiningen versions earlier than 2.0*
 
-Add the following to your Leiningen `project.clj` file in the `:dev-dependencies` section:
+Add the following to your Leiningen `project.clj` file in the `:plugins` section:
 
-    [lein-generative "0.1.4.0"]
+    [sjl/lein2-generative "0.1.4.2"]
 
 The version number of lein-generative will track the latest released version of test.generative. The end of the version number will be the specific sub-version of this plugin.
 
