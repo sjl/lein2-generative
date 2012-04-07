@@ -2,7 +2,6 @@
   (:refer-clojure :exclude [test])
   (:use [leiningen.test :only [*exit-after-tests*]]
         [leiningen.core.eval :only [eval-in-project]]
-        [clojure.pprint :only [pprint]]
         [leiningen.classpath :only [classpath]]))
 
 
